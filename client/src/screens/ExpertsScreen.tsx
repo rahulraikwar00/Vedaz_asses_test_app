@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { FlatList, View, Text, TextInput, Button, ActivityIndicator, StyleSheet } from 'react-native'
+import { FlatList, View, Text, TextInput, Button, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native'
 import { getExperts } from '../services/api'
 import { Expert } from '../types'
 
@@ -50,10 +50,10 @@ export default function ExpertsScreen({ navigate }: any) {
         data={experts}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.card} onTouchEnd={() => navigate('expert-detail', { id: item._id })}>
+          <TouchableOpacity style={styles.card} onPress={() => navigate('expert-detail', { id: item._id })}>
             <Text style={styles.name}>{item.name}</Text>
             <Text>{item.category} &bull; {item.experience} yrs &bull; {item.rating.toFixed(1)}</Text>
-          </View>
+          </TouchableOpacity>
         )}
         onEndReached={() => {
           if (page < totalPages && !loading) {
@@ -66,8 +66,8 @@ export default function ExpertsScreen({ navigate }: any) {
           }
         }}
         onEndReachedThreshold={0.5}
+        ListFooterComponent={<Button title="My Bookings" onPress={() => navigate('my-bookings')} />}
       />
-      <Button title="My Bookings" onPress={() => navigate('my-bookings')} />
     </View>
   )
 }

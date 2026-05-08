@@ -7,15 +7,22 @@ import { Booking } from '../types'
 export default function MyBookingsScreen({ goBack }: any) {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
-    ;(async () => {
+  const loadBookings = async () => {
+    setError('')
+    try {
       const userId = await getDeviceId()
       const data = await getBookingsByUserId(userId)
       setBookings(data)
+    } catch (e: any) {
+      setError(e.response?.data?.error || e.message)
+    } finally {
       setLoading(false)
-    })()
-  }, [])
+    }
+  }
+
+  useEffect(() => { loadBookings() }, [])
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -26,23 +33,16 @@ export default function MyBookingsScreen({ goBack }: any) {
     }
   }
 
-  const fetchBookings = async () => {
-    setLoading(true)
-    const userId = await getDeviceId()
-    const data = await getBookingsByUserId(userId)
-    setBookings(data)
-    setLoading(false)
-  }
-
   return (
     <View style={styles.container}>
       <Button title="< Back" onPress={goBack} />
       <Text style={styles.title}>My Bookings</Text>
-      <Button title="Refresh" onPress={fetchBookings} disabled={loading} />
+      <Button title="Refresh" onPress={loadBookings} disabled={loading} />
       {loading ? <ActivityIndicator /> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
       <FlatList
         data={bookings}
-        keyExtractor={(item) => String(item._id)}
+        keyExtractor={(item) => item._id?.toString() || Math.random().toString()}
         ListEmptyComponent={<Text style={styles.empty}>No bookings yet</Text>}
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -63,4 +63,5 @@ const styles = StyleSheet.create({
   card: { padding: 12, borderBottomWidth: 1, borderColor: '#eee' },
   expertName: { fontSize: 16, fontWeight: 'bold' },
   empty: { textAlign: 'center', marginTop: 20, color: '#888' },
+  error: { color: 'red', marginBottom: 12, textAlign: 'center' },
 })
