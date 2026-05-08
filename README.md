@@ -73,6 +73,26 @@ A `render.yaml` is included. The server auto-deploys with:
 
 After deployment, update `EXPO_PUBLIC_API_URL` in the client to `https://<your-service>.onrender.com`.
 
+## API Endpoints
+
+Base URL: `http://<host>:5000`
+
+### REST
+
+| Method | Endpoint | Query / Body | Description |
+|--------|----------|--------------|-------------|
+| `GET` | `/experts` | `?page=1&search=&category=` | List experts (paginated, searchable, filterable) |
+| `GET` | `/experts/:id` | — | Get expert details with available/booked slots |
+| `POST` | `/bookings` | `{ expertId, userId, userName, email, phone, date, timeSlot, notes }` | Create a booking |
+| `PATCH` | `/bookings/:id/status` | `{ status }` | Update booking status |
+| `GET` | `/bookings` | `?userId=xxx` or `?email=xxx` | Get bookings by device ID or email |
+
+### Socket.io
+
+| Event | Direction | Payload | Trigger |
+|-------|-----------|---------|---------|
+| `slot-booked` | server → client | `{ expertId, date, timeSlot }` | Emitted when a booking is created |
+
 ## Project Structure
 
 ```
