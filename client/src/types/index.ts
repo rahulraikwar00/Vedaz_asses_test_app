@@ -1,5 +1,5 @@
 export interface Expert {
-  id: number
+  _id: string
   name: string
   category: string
   experience: number
@@ -10,7 +10,7 @@ export interface Expert {
 
 export interface Booking {
   _id: string
-  expertId: { _id: string; name: string }
+  expertId: { _id: string; name: string } | null
   userName: string
   email: string
   phone: string

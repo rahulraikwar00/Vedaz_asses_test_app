@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native'
 import { createBooking } from '../services/api'
+import { getDeviceId } from '../utils/deviceId'
 
 export default function BookingScreen({ goBack, params }: any) {
   const { expertId, date, time } = params
@@ -9,6 +10,11 @@ export default function BookingScreen({ goBack, params }: any) {
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [userId, setUserId] = useState('')
+
+  useEffect(() => {
+    getDeviceId().then(setUserId)
+  }, [])
 
   const handleBooking = async () => {
     if (!name || !email || !phone) {
@@ -17,7 +23,7 @@ export default function BookingScreen({ goBack, params }: any) {
     }
     setLoading(true)
     try {
-      await createBooking({ expertId, userName: name, email, phone, date, timeSlot: time, notes })
+      await createBooking({ expertId, userId, userName: name, email, phone, date, timeSlot: time, notes })
       Alert.alert('Success', 'Booking confirmed!')
       goBack()
     } catch (e: any) {

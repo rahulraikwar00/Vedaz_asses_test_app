@@ -26,3 +26,8 @@ export const getBookingsByEmail = async (email: string) => {
   const { data } = await api.get<Booking[]>('/bookings', { params: { email } })
   return data
 }
+
+export const getBookingsByUserId = async (userId: string) => {
+  const { data } = await api.get<Booking[]>('/bookings', { params: { userId } })
+  return data
+}

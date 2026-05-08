@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, Button, ActivityIndicator, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView } from 'react-native'
 import { getExpertById } from '../services/api'
 import { subscribeToSlotBooked } from '../services/socket'
 import { Expert } from '../types'
@@ -38,24 +38,30 @@ export default function ExpertDetailScreen({ navigate, goBack, params }: any) {
     return acc
   }, {})
 
+  const dateGroups = Object.entries(slotsByDate)
+
   return (
     <ScrollView style={styles.container}>
-      <Button title="< Back" onPress={goBack} />
+      <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+        <Text style={styles.backText}>{'< Back'}</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>{expert.name}</Text>
       <Text>{expert.category} &bull; {expert.experience} yrs &bull; {expert.rating.toFixed(1)}</Text>
       <Text style={styles.subtitle}>Available Slots</Text>
-      {Object.entries(slotsByDate).map(([date, slots]: any) => (
+      {dateGroups.map(([date, slots]: any) => (
         <View key={date} style={styles.dateGroup}>
           <Text style={styles.date}>{date}</Text>
-          {slots.map((slot: any) => (
-            <View key={slot.date + slot.time} style={{ marginBottom: 4 }}>
-              <Button
-                title={slot.time}
-                disabled={slot.booked}
-                onPress={() => navigate('booking', { expertId: id, date, time: slot.time })}
-                color={slot.booked ? '#ccc' : '#007AFF'}
-              />
-            </View>
+          {slots.map((slot: any, idx: number) => (
+            <TouchableOpacity
+              key={`${date}-${idx}`}
+              style={[styles.slotBtn, slot.booked && styles.slotDisabled]}
+              disabled={slot.booked}
+              onPress={() => navigate('booking', { expertId: id, date, time: slot.time })}
+            >
+              <Text style={[styles.slotText, slot.booked && styles.slotTextDisabled]}>
+                {slot.time} {slot.booked ? '(Booked)' : ''}
+              </Text>
+            </TouchableOpacity>
           ))}
         </View>
       ))}
@@ -66,9 +72,15 @@ export default function ExpertDetailScreen({ navigate, goBack, params }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   center: { flex: 1, justifyContent: 'center' },
+  backBtn: { marginBottom: 8 },
+  backText: { color: '#007AFF', fontSize: 16 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
   subtitle: { fontSize: 18, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
   dateGroup: { marginBottom: 16 },
   date: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
+  slotBtn: { padding: 10, backgroundColor: '#007AFF', borderRadius: 4, marginBottom: 6, alignItems: 'center' },
+  slotDisabled: { backgroundColor: '#ccc' },
+  slotText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  slotTextDisabled: { color: '#888' },
   error: { color: 'red', padding: 16 },
 })

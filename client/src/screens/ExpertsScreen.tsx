@@ -48,9 +48,9 @@ export default function ExpertsScreen({ navigate }: any) {
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <FlatList
         data={experts}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.card} onTouchEnd={() => navigate('expert-detail', { id: String(item.id) })}>
+          <View style={styles.card} onTouchEnd={() => navigate('expert-detail', { id: item._id })}>
             <Text style={styles.name}>{item.name}</Text>
             <Text>{item.category} &bull; {item.experience} yrs &bull; {item.rating.toFixed(1)}</Text>
           </View>

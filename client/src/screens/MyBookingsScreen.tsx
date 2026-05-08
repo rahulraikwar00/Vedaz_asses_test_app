@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react'
-import { View, Text, TextInput, FlatList, StyleSheet, Button, ActivityIndicator } from 'react-native'
-import { getBookingsByEmail } from '../services/api'
+import { View, Text, FlatList, StyleSheet, Button, ActivityIndicator } from 'react-native'
+import { getBookingsByUserId } from '../services/api'
+import { getDeviceId } from '../utils/deviceId'
 import { Booking } from '../types'
 
 export default function MyBookingsScreen({ goBack }: any) {
-  const [filterEmail, setFilterEmail] = useState('')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchBookings = async (email?: string) => {
-    setLoading(true)
-    try {
-      const data = await getBookingsByEmail(email || '')
+  useEffect(() => {
+    ;(async () => {
+      const userId = await getDeviceId()
+      const data = await getBookingsByUserId(userId)
       setBookings(data)
-    } finally {
       setLoading(false)
-    }
-  }
-
-  useEffect(() => { fetchBookings() }, [])
+    })()
+  }, [])
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -29,25 +26,29 @@ export default function MyBookingsScreen({ goBack }: any) {
     }
   }
 
+  const fetchBookings = async () => {
+    setLoading(true)
+    const userId = await getDeviceId()
+    const data = await getBookingsByUserId(userId)
+    setBookings(data)
+    setLoading(false)
+  }
+
   return (
     <View style={styles.container}>
       <Button title="< Back" onPress={goBack} />
-      <Text style={styles.title}>All Bookings</Text>
-      <View style={styles.searchRow}>
-        <TextInput placeholder="Filter by email" value={filterEmail} onChangeText={setFilterEmail} style={styles.input} keyboardType="email-address" />
-        <Button title="Filter" onPress={() => fetchBookings(filterEmail)} disabled={loading} />
-      </View>
+      <Text style={styles.title}>My Bookings</Text>
+      <Button title="Refresh" onPress={fetchBookings} disabled={loading} />
       {loading ? <ActivityIndicator /> : null}
       <FlatList
         data={bookings}
         keyExtractor={(item) => String(item._id)}
-        ListEmptyComponent={<Text style={styles.empty}>No bookings found</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No bookings yet</Text>}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.expertName}>{item.expertId.name}</Text>
+            <Text style={styles.expertName}>{item.expertId?.name || 'Unknown Expert'}</Text>
             <Text>{item.date} at {item.timeSlot}</Text>
-            <Text>Booked by: {item.userName} ({item.email})</Text>
-            <Text style={{ color: statusColor(item.status), fontWeight: 'bold' }}>{item.status.toUpperCase()}</Text>
+            <Text>Status: <Text style={{ color: statusColor(item.status), fontWeight: 'bold' }}>{item.status.toUpperCase()}</Text></Text>
           </View>
         )}
       />
@@ -58,8 +59,7 @@ export default function MyBookingsScreen({ goBack }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  searchRow: { flexDirection: 'row', marginBottom: 16 },
-  input: { flex: 1, borderWidth: 1, borderColor: '#ccc', padding: 8, marginRight: 8, borderRadius: 4 },
+
   card: { padding: 12, borderBottomWidth: 1, borderColor: '#eee' },
   expertName: { fontSize: 16, fontWeight: 'bold' },
   empty: { textAlign: 'center', marginTop: 20, color: '#888' },
