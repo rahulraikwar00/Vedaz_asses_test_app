@@ -1,13 +1,14 @@
-export interface Expert {
-  id: number
-  name: string
-  category: string
-  experience: number
-  rating: number
-  slots: Slot[]
-}
+import { Schema, model } from 'mongoose'
 
-export interface Slot {
-  date: string
-  time: string
-}
+const expertSchema = new Schema({
+  name: { type: String, required: true },
+  category: { type: String, required: true },
+  experience: { type: Number, required: true },
+  rating: { type: Number, required: true },
+  slots: [{
+    date: { type: String, required: true },
+    time: { type: String, required: true }
+  }]
+}, { timestamps: true })
+
+export default model('Expert', expertSchema)

@@ -1,12 +1,25 @@
 services:
   - type: web
+    runtime: node
     name: expert-booking-api
-    env: node
     rootDir: server
+    region: oregon
+    healthCheckPath: /experts
+    autoDeploy: true
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
       - key: PORT
         value: 10000
       - key: CLIENT_URL
+        fromGroup: app-settings
+      - key: MONGO_URI
+        fromGroup: app-settings
+
+envVarGroups:
+  - name: app-settings
+    envVars:
+      - key: CLIENT_URL
         value: https://your-expo-app.com
+      - key: MONGO_URI
+        sync: false

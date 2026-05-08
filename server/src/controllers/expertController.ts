@@ -1,40 +1,21 @@
 import { Request, Response } from 'express'
-import { getDB } from '../utils/db'
-import { Expert, Slot } from '../models/Expert'
+import Expert from '../models/Expert'
+import Booking from '../models/Booking'
 
-export const getExperts = (req: Request, res: Response) => {
+export const getExperts = async (req: Request, res: Response) => {
   try {
-    const db = getDB()
     const page = parseInt(req.query.page as string) || 1
     const limit = parseInt(req.query.limit as string) || 10
     const search = (req.query.search as string) || ''
     const category = (req.query.category as string) || ''
     const skip = (page - 1) * limit
 
-    let where = 'WHERE 1=1'
-    const params: any[] = []
+    let query: any = {}
+    if (search) query.name = { $regex: search, $options: 'i' }
+    if (category) query.category = { $regex: category, $options: 'i' }
 
-    if (search) {
-      where += ' AND name LIKE ?'
-      params.push(`%${search}%`)
-    }
-    if (category) {
-      where += ' AND category LIKE ?'
-      params.push(`%${category}%`)
-    }
-
-    const total = (db.prepare(`SELECT COUNT(*) as count FROM experts ${where}`).get(...params) as any).count
-
-    const rows = db.prepare(`SELECT * FROM experts ${where} LIMIT ? OFFSET ?`).all(...params, limit, skip)
-
-    const experts: Expert[] = rows.map((r: any) => ({
-      id: r.id,
-      name: r.name,
-      category: r.category,
-      experience: r.experience,
-      rating: r.rating,
-      slots: JSON.parse(r.slots)
-    }))
+    const experts = await Expert.find(query).skip(skip).limit(limit)
+    const total = await Expert.countDocuments(query)
 
     res.json({ experts, totalPages: Math.ceil(total / limit), currentPage: page })
   } catch (e: any) {
@@ -42,28 +23,15 @@ export const getExperts = (req: Request, res: Response) => {
   }
 }
 
-export const getExpertById = (req: Request, res: Response) => {
+export const getExpertById = async (req: Request, res: Response) => {
   try {
-    const db = getDB()
+    const expert = await Expert.findById(req.params.id)
+    if (!expert) return res.status(404).json({ error: 'Expert not found' })
 
+    const bookings = await Booking.find({ expertId: expert._id })
+    const bookedSlots = bookings.map(b => ({ date: b.date, time: b.timeSlot }))
 
-    const id = parseInt(req.params.id as string)
-    const row = db.prepare('SELECT * FROM experts WHERE id = ?').get(id) as any
-
-    const bookings = db.prepare('SELECT date, timeSlot FROM bookings WHERE expertId = ?').all(row.id)
-
-    const slots: Slot[] = JSON.parse(row.slots)
-    const bookedSlots = bookings.map((b: any) => ({ date: b.date, time: b.timeSlot }))
-
-    res.json({
-      id: row.id,
-      name: row.name,
-      category: row.category,
-      experience: row.experience,
-      rating: row.rating,
-      slots,
-      bookedSlots
-    })
+    res.json({ ...expert.toObject(), bookedSlots })
   } catch (e: any) {
     res.status(500).json({ error: e.message })
   }
