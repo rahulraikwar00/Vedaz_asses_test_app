@@ -2,6 +2,8 @@
 
 A real-time expert session booking system built with React Native (Expo) + Node.js/Express + MongoDB.
 
+https://github.com/user-attachments/assets/019528e5-77e7-4e59-8dfd-9699cfe079f4
+
 ## Architecture
 
 - **Backend:** Node.js + Express + Mongoose + Socket.io
@@ -28,6 +30,7 @@ Edit `server/.env`:
 Then:
 
 ```bash
+
 npm install
 npm run seed      # populate 3 sample experts
 npm run dev       # start backend on port 5000
